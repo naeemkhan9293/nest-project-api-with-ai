@@ -1,6 +1,11 @@
 import { NestFactory } from '@nestjs/core';
+import {
+  SwaggerModule,
+  DocumentBuilder,
+  SwaggerCustomOptions,
+} from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { darkModeCss } from './swagger-dark-mode';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -11,8 +16,15 @@ async function bootstrap() {
     .setVersion('1.0')
     .addTag('chatbot')
     .build();
+
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+
+  // Define custom options, including the CSS
+  const swaggerCustomOptions: SwaggerCustomOptions = {
+    customCss: darkModeCss,
+  };
+
+  SwaggerModule.setup('api', app, document, swaggerCustomOptions);
 
   await app.listen(process.env.PORT ?? 3001);
 }
