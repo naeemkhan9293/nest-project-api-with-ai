@@ -1,9 +1,11 @@
 import { Module } from '@nestjs/common';
-import { PromptsController } from './prompts.controller';
+import { PromptsController, GenerateImageController } from './prompts.controller';
 import { PromptsService } from './prompts.service';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  controllers: [PromptsController],
+  imports: [AuthModule],
+  controllers: [PromptsController, GenerateImageController],
   providers: [PromptsService],
 })
 export class PromptsModule {}

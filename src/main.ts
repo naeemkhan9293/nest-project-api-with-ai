@@ -15,6 +15,17 @@ async function bootstrap() {
     .setDescription('This chatbot will generate images and many more')
     .setVersion('1.0')
     .addTag('chatbot')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Enter JWT token',
+        in: 'header',
+      },
+      'JWT-auth',
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
