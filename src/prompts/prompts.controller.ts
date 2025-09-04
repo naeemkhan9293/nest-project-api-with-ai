@@ -1,4 +1,11 @@
-import { Controller, Post, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  Body,
+} from '@nestjs/common';
 import { PromptsService } from './prompts.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import {
@@ -6,7 +13,11 @@ import {
   ApiTags,
   ApiOperation,
   ApiResponse,
+  ApiBody,
+  ApiConsumes,
 } from '@nestjs/swagger';
+import { PromptImageGeneratorDto } from './dto/prompt-image-generator.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('Prompts')
 @ApiBearerAuth('JWT-auth')
@@ -44,7 +55,9 @@ export class GenerateImageController {
   constructor(private readonly promptsService: PromptsService) {}
 
   @Post()
+  @UseInterceptors(FileInterceptor('image'))
   @ApiOperation({ summary: 'Generate an image (Protected Route)' })
+  @ApiConsumes('multipart/form-data')
   @ApiResponse({
     status: 200,
     description: 'Image generated successfully',
@@ -59,7 +72,13 @@ export class GenerateImageController {
     status: 401,
     description: 'Unauthorized - JWT token required',
   })
-  generateImage(): { message: string } {
-    return this.promptsService.generateImage();
+  @ApiBody({ type: PromptImageGeneratorDto })
+  async generateImage(
+    @Body() body: { prompt: string },
+    @UploadedFile() image: Express.Multer.File,
+  ): Promise<{ message: string }> {
+    console.log(image);
+    console.log(body.prompt);
+    return await this.promptsService.generateImage();
   }
 }
