@@ -5,7 +5,9 @@ import {
   UseInterceptors,
   UploadedFile,
   Body,
+  Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { PromptsService } from './prompts.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import {
@@ -18,6 +20,7 @@ import {
 } from '@nestjs/swagger';
 import { PromptImageGeneratorDto } from './dto/prompt-image-generator.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { PromptDto } from './dto/prompt.dto';
 
 @ApiTags('Prompts')
 @ApiBearerAuth('JWT-auth')
@@ -42,8 +45,12 @@ export class PromptsController {
     status: 401,
     description: 'Unauthorized - JWT token required',
   })
-  receivePrompt(): { message: string } {
-    return this.promptsService.receivePrompt();
+  @ApiBody({ type: PromptDto })
+  async receivePrompt(
+    @Body() body: { prompt: string },
+  ): Promise<{ message: string }> {
+    const { prompt } = body;
+    return await this.promptsService.receivePrompt(prompt);
   }
 }
 
@@ -60,11 +67,28 @@ export class GenerateImageController {
   @ApiConsumes('multipart/form-data')
   @ApiResponse({
     status: 200,
-    description: 'Image generated successfully',
-    schema: {
-      type: 'object',
-      properties: {
-        message: { type: 'string' },
+    description:
+      'Image generated successfully and returned as a file, or a text message if no image was generated.',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            message: { type: 'string' },
+          },
+        },
+      },
+      'image/png': {
+        schema: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+      'image/jpeg': {
+        schema: {
+          type: 'string',
+          format: 'binary',
+        },
       },
     },
   })
@@ -76,9 +100,16 @@ export class GenerateImageController {
   async generateImage(
     @Body() body: { prompt: string },
     @UploadedFile() image: Express.Multer.File,
-  ): Promise<{ message: string }> {
-    console.log(image);
-    console.log(body.prompt);
-    return await this.promptsService.generateImage();
+    @Res() res: Response,
+  ): Promise<void> {
+    const { prompt } = body;
+    const result = await this.promptsService.generateImage(prompt, image);
+
+    if (result.image && result.mimeType) {
+      res.setHeader('Content-Type', result.mimeType);
+      res.send(result.image);
+    } else {
+      res.json({ message: result.message });
+    }
   }
 }
