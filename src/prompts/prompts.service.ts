@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI, Part } from '@google/genai';
 import mime from 'mime';
 import { writeFile } from 'fs';
 @Injectable()
@@ -124,6 +124,9 @@ export class PromptsService {
       return { message: error.message };
     }
   }
+  // ========================================================================
+  // Generate images
+  // ========================================================================
   async generateImage(
     prompt: string,
     image: Express.Multer.File,
@@ -131,6 +134,23 @@ export class PromptsService {
     const ai = new GoogleGenAI({
       apiKey: process.env.GEMINI_API_KEY,
     });
+    const parts: Part[] = [];
+    if (image) {
+      const base64Image = image.buffer.toString('base64');
+      parts.push(
+        { text: prompt },
+        {
+          inlineData: {
+            mimeType: image.mimetype,
+            data: base64Image,
+          },
+        },
+      );
+    } else {
+      parts.push({
+        text: prompt,
+      });
+    }
     const config = {
       responseModalities: ['IMAGE', 'TEXT'],
     };
@@ -138,11 +158,7 @@ export class PromptsService {
     const contents = [
       {
         role: 'user',
-        parts: [
-          {
-            text: prompt,
-          },
-        ],
+        parts,
       },
     ];
 
