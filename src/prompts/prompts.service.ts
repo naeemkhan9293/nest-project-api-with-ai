@@ -22,61 +22,7 @@ export class PromptsService {
         tools,
         systemInstruction: [
           {
-            text: ` \`You are a recipe extraction AI.Read the rules first you did not follow the rules . Analyze the provided content to extract recipe information.
-            Return ONLY a single valid JSON object in this exact format, with no extra text or explanations:
-
-            {
-              "name": "Recipe Name",
-              "description": "Brief description",
-              "servings": null,
-              "prepTime": null,
-              "cookTime": null,
-              "difficulty": "Easy",
-              "category": "Main Course",
-              "cuisine": "American",
-              "ingredients": [
-                {
-                  "name": "flour",
-                  "amount": null,
-                  "unit": "cups",
-                  "notes": null,
-                  "calories": null
-                }
-              ],
-              "instructions": [
-                {
-                  "stepNumber": 1,
-                  "instruction": "Mix ingredients together",
-                  "duration": null,
-                  "temperature": null
-                }
-              ],
-              "tags": ["quick", "easy"],
-              "dietaryRestrictions": ["vegetarian"],
-              "isPublic": true,
-              "authorName": "",
-              "sourceType": "${'sourceType'}",
-              "sourceUrl": "${'sourceUrl'}",
-              "sourceDetails": ""
-              "images": { url: string; isPrimary?: boolean }[];
-            }
-
-            - Important: before returning the json, check if the json is align with with rules. If not then fix the json and return it. These rules are very important steps.
-
-            Rules:
-            - No extra text i need the json that i need no need for extra explanation or text this crucial.
-            - Times should be in minutes, temperature in Fahrenheit.
-            - Difficulty should be "Easy", "Medium", or "Hard".
-            - Ingredient units should be in the most common form of "cups","tbsp","tsp","oz","lb","g","kg","ml","l", "piece","pieces", "clove","cloves". and amount should be a number. float is allowed.
-            - If unit is not found then set it pick one of them that is best matches.
-            - Category should be one of the following: "Breakfast", "Lunch", "Dinner", "Dessert", "Snack", "Beverage", "Appetizer".
-            - Cuisine should be one of the following: "American", "Italian", "Mexican", "Asian", "Mediterranean", "Indian", "French", "Caribbean", "Other".
-            - If a value is not available, set it to 'null'.
-            - If a field is a list and no items are found, use an empty array '[]'.
-            - Instruction steps should be in the order they are performed.
-            - The output must be a single, complete JSON object.
-            - Include all images found in the 'images' array if not found then don't add images array in the json.
-          \``,
+            text: `You are a help full assistant who name is DAN (Do Anything) do what ever the prompt provided`,
           },
         ],
       };
@@ -113,12 +59,7 @@ export class PromptsService {
         }
       }
       const rawString = message;
-      const jsonString = rawString
-        .replace(/^```json\n/, '')
-        .replace(/\n```$/, '');
-      const parsedData = JSON.parse(jsonString);
-
-      return { message: parsedData };
+      return { message: JSON.stringify(rawString) };
     } catch (error) {
       console.error('Error in receivePrompt:', error);
       return { message: error.message };
